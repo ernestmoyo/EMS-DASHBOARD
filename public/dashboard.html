@@ -1138,7 +1138,7 @@ async function deleteRule(id) {
 }
 
 // ── Reports ───────────────────────────────────────────────────
-function downloadCsv() {
+async function downloadCsv() {
   const from = document.getElementById('rpt-from').value;
   const to   = document.getElementById('rpt-to').value;
   const type = document.getElementById('rpt-type').value;
@@ -1146,16 +1146,22 @@ function downloadCsv() {
   if (from) p.from = new Date(from).toISOString();
   if (to)   p.to   = new Date(to).toISOString();
   if (type) p.sensor_type = type;
-  window.open(EmsApi.csvUrl(p), '_blank');
+  try {
+    toast('Preparing CSV…');
+    await EmsApi.downloadFile(EmsApi.csvUrl(p), 'ems_readings.csv');
+  } catch (e) { toast(e.message); }
 }
 
-function downloadAlertsCsv() {
+async function downloadAlertsCsv() {
   const from = document.getElementById('alt-from').value;
   const to   = document.getElementById('alt-to').value;
   const p = {};
   if (from) p.from = new Date(from).toISOString();
   if (to)   p.to   = new Date(to).toISOString();
-  window.open(EmsApi.alertsCsvUrl(p), '_blank');
+  try {
+    toast('Preparing CSV…');
+    await EmsApi.downloadFile(EmsApi.alertsCsvUrl(p), 'ems_alerts.csv');
+  } catch (e) { toast(e.message); }
 }
 
 async function generatePdf() {

@@ -33,6 +33,30 @@ window.EmsApi = (function () {
 
   function qs(params) { return new URLSearchParams(params).toString(); }
 
+  // Authenticated file download: fetch with the Bearer token (a plain
+  // window.open / anchor link cannot send the Authorization header, so the
+  // server rejects it with 401). Streams the response into a Blob and saves it.
+  async function downloadFile(path, filename) {
+    const res = await fetch(path, {
+      headers: { 'Authorization': 'Bearer ' + getToken() },
+    });
+    if (res.status === 401 && getToken()) { clearSession(); window.location.href = '/'; return; }
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const j = await res.json(); if (j.error) msg = j.error; } catch (_) {}
+      throw new Error(msg);
+    }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   return {
     getToken, getUser, setSession, clearSession, isLoggedIn,
 
@@ -71,6 +95,7 @@ window.EmsApi = (function () {
     csvUrl:         (p) => '/api/reports/csv?' + qs(p),
     alertsCsvUrl:   (p) => '/api/reports/alerts-csv?' + qs(p),
     reportSummary:  (p) => request('GET', '/api/reports/summary-json?' + qs(p)),
+    downloadFile,
 
     // Settings
     settings:      ()      => request('GET', '/api/settings'),

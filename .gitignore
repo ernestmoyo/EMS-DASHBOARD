@@ -1,7 +1,11 @@
 node_modules/
 .env
+.env.*
 .postgres-data/
 mosquitto/data/
 mosquitto/log/
 node-red/flows_cred.json
 *.log
+
+# Local-only Docker port override (machine-specific)
+docker-compose.override.yml
