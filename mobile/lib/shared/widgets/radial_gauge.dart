@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_theme.dart';
+
 /// A 270° radial gauge mirroring the web dashboard's SVG arc gauges.
 class RadialGauge extends StatelessWidget {
   const RadialGauge({
@@ -29,48 +31,56 @@ class RadialGauge extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final v = value;
-    final pct = (v == null || max <= min)
-        ? 0.0
-        : ((v - min) / (max - min)).clamp(0.0, 1.0);
     final arcColor = color ?? scheme.primary;
 
+    // Animate the arc + number: sweeps from 0 on first paint, and smoothly
+    // transitions whenever the value updates (mirrors the web gauge motion).
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _GaugePainter(
-          pct: pct,
-          arcColor: arcColor,
-          trackColor: scheme.surfaceContainerHighest,
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                v == null ? '—' : v.toStringAsFixed(decimals),
-                style: TextStyle(
-                  fontSize: size * 0.18,
-                  fontWeight: FontWeight.bold,
-                  color: scheme.onSurface,
-                ),
-              ),
-              if (unit.isNotEmpty)
-                Text(unit,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: v ?? 0),
+        duration: const Duration(milliseconds: 900),
+        curve: Curves.easeOutCubic,
+        builder: (context, animV, _) {
+          final pct = (max <= min)
+              ? 0.0
+              : ((animV - min) / (max - min)).clamp(0.0, 1.0);
+          return CustomPaint(
+            painter: _GaugePainter(
+              pct: pct,
+              arcColor: arcColor,
+              trackColor: scheme.surfaceContainerHighest,
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    v == null ? '—' : animV.toStringAsFixed(decimals),
+                    style: AppTheme.mono(
+                      fontSize: size * 0.18,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                  if (unit.isNotEmpty)
+                    Text(unit,
+                        style: TextStyle(
+                            fontSize: size * 0.09,
+                            color: scheme.onSurfaceVariant)),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: size * 0.09,
-                        color: scheme.onSurfaceVariant)),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: size * 0.083,
-                    color: scheme.onSurfaceVariant),
+                        fontSize: size * 0.083,
+                        color: scheme.onSurfaceVariant),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

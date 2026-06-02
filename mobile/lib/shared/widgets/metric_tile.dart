@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_theme.dart';
+
 /// Compact labelled metric card (icon + value + caption).
 class MetricTile extends StatelessWidget {
   const MetricTile({
@@ -55,8 +57,7 @@ class MetricTile extends StatelessWidget {
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold),
+                  style: AppTheme.mono(fontSize: 24),
                 ),
                 if (unit.isNotEmpty) ...[
                   const SizedBox(width: 3),

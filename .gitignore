@@ -1,5 +1,6 @@
 node_modules/
 .env
+.env.*
 .postgres-data/
 mosquitto/data/
 mosquitto/log/
